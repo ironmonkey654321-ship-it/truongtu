@@ -1,0 +1,76 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { SITE_TITLE } from '../consts';
+import { isoDay, longDate, topicColor, topicHref } from '../lib/posts';
+import Base from './Base.astro';
+
+interface Props {
+	title: string;
+	description: string;
+	pubDate?: Date;
+	updatedDate?: Date;
+	topic?: string;
+	heroImage?: ImageMetadata;
+	/** So phut doc; bo trong thi khong hien. */
+	minutes?: number;
+	/** Trang don (vd Gioi thieu) thi khong hien loi ve danh sach bai. */
+	isPage?: boolean;
+}
+
+const { title, description, pubDate, updatedDate, topic, heroImage, minutes, isPage } = Astro.props;
+const hasMeta = Boolean(pubDate || minutes);
+---
+
+<Base
+	title={`${title} - ${SITE_TITLE}`}
+	description={description}
+	image={heroImage}
+	type={isPage ? 'website' : 'article'}
+>
+	<article class="article">
+		<header class="article-head">
+			{
+				topic && (
+					<a class={`tag ${topicColor(topic)}`} href={topicHref(topic)}>
+						{topic}
+					</a>
+				)
+			}
+			<h1>{title}</h1>
+			<p class="lead">{description}</p>
+			<div class="article-meta">
+				{pubDate && <time datetime={isoDay(pubDate)}>{longDate(pubDate)}</time>}
+				{minutes && <span>{minutes} phút đọc</span>}
+				{
+					updatedDate && (
+						<span>
+							Cập nhật <time datetime={isoDay(updatedDate)}>{longDate(updatedDate)}</time>
+						</span>
+					)
+				}
+				{!hasMeta && <span>{SITE_TITLE}</span>}
+			</div>
+		</header>
+
+		{
+			heroImage && (
+				<div class="article-hero">
+					<Image width={1360} height={680} src={heroImage} alt="" />
+				</div>
+			)
+		}
+
+		<div class="prose">
+			<slot />
+		</div>
+
+		{
+			!isPage && (
+				<footer class="article-foot">
+					<a href="/blog/">← Tất cả bài viết</a>
+				</footer>
+			)
+		}
+	</article>
+</Base>
