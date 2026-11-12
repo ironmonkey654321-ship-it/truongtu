@@ -1,0 +1,46 @@
+---
+import PostList from '../../components/PostList.astro';
+import { SITE_TITLE } from '../../consts';
+import Base from '../../layouts/Base.astro';
+import { getPosts, listTopics, topicColor, topicHref, topicSlug } from '../../lib/posts';
+
+const posts = await getPosts();
+const topics = listTopics(posts);
+---
+
+<Base
+	title={`Chủ đề - ${SITE_TITLE}`}
+	description={`Các chủ đề trên blog ${SITE_TITLE} và bài viết của từng chủ đề.`}
+>
+	<header class="page-head wrap">
+		<p class="kicker">Chủ đề</p>
+		<h1>Đọc theo chủ đề</h1>
+		<p>Chọn một chủ đề để tới thẳng các bài thuộc chủ đề đó.</p>
+		{
+			topics.length > 0 && (
+				<div class="topics" style="margin-top: 22px">
+					{topics.map((topic) => (
+						<a class={`tag ${topicColor(topic.name)}`} href={topicHref(topic.name)}>
+							{topic.name}
+						</a>
+					))}
+				</div>
+			)
+		}
+	</header>
+
+	<div class="page-body wrap">
+		{topics.length === 0 && <p class="empty">Chưa có chủ đề nào.</p>}
+		{
+			topics.map((topic) => (
+				<section id={topicSlug(topic.name)} aria-labelledby={`${topicSlug(topic.name)}-h`}>
+					<div class="section-head">
+						<h2 id={`${topicSlug(topic.name)}-h`}>{topic.name}</h2>
+						<span class="count">{topic.count} bài</span>
+					</div>
+					<PostList posts={posts.filter((post) => post.data.topic === topic.name)} />
+				</section>
+			))
+		}
+	</div>
+</Base>

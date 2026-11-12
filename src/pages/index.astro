@@ -1,0 +1,87 @@
+---
+import PostList from '../components/PostList.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import Base from '../layouts/Base.astro';
+import {
+	getPosts,
+	listTopics,
+	longDate,
+	readingMinutes,
+	topicColor,
+	topicHref,
+} from '../lib/posts';
+
+const RECENT = 5;
+
+const posts = await getPosts();
+const [featured, ...rest] = posts;
+const recent = rest.slice(0, RECENT);
+const topics = listTopics(posts);
+---
+
+<Base title={SITE_TITLE} description={SITE_DESCRIPTION}>
+	<section class="intro wrap">
+		<p class="kicker">Blog cá nhân</p>
+		<h1>Ghi lại những điều mình học được, viết cho dễ đọc.</h1>
+		<p>
+			Xin chào, mình là {SITE_TITLE}. Ở đây mỗi bài chỉ nói một ý, viết ngắn và rõ, để bạn đọc xong là
+			dùng được.
+		</p>
+	</section>
+
+	{
+		featured && (
+			<section class="wrap" aria-label="Bài mới nhất">
+				<a class="featured" href={`/blog/${featured.id}/`}>
+					<span class="label">Bài mới nhất</span>
+					<h2>{featured.data.title}</h2>
+					<p>{featured.data.description}</p>
+					<div class="meta">
+						<span>{longDate(featured.data.pubDate)}</span>
+						<span>{readingMinutes(featured)} phút đọc</span>
+						<span class="read">
+							Đọc bài <span aria-hidden="true">→</span>
+						</span>
+					</div>
+				</a>
+			</section>
+		)
+	}
+
+	<div class="content wrap">
+		<section id="bai-viet" aria-labelledby="bai-viet-h">
+			<div class="section-head">
+				<h2 id="bai-viet-h">Bài viết gần đây</h2>
+				<a href="/blog/">Xem tất cả →</a>
+			</div>
+			<PostList posts={recent} />
+		</section>
+
+		<aside class="side" aria-label="Thông tin thêm">
+			{
+				topics.length > 0 && (
+					<section id="chu-de">
+						<h2>Chủ đề</h2>
+						<div class="topics">
+							{topics.map((topic) => (
+								<a class={`tag ${topicColor(topic.name)}`} href={topicHref(topic.name)}>
+									{topic.name}
+								</a>
+							))}
+						</div>
+					</section>
+				)
+			}
+			<section class="about" id="gioi-thieu">
+				<h2>Về mình</h2>
+				<p>Mình viết để nghĩ cho rõ và để lưu lại những gì đã học.</p>
+				<a href="/about/">Đọc thêm về mình →</a>
+			</section>
+			<section class="follow">
+				<h2>Theo dõi</h2>
+				<p>Nhận bài mới qua trình đọc RSS, không cần đăng ký tài khoản.</p>
+				<a href="/rss.xml">Lấy địa chỉ RSS →</a>
+			</section>
+		</aside>
+	</div>
+</Base>

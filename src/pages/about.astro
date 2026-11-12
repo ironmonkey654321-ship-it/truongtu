@@ -1,0 +1,23 @@
+---
+import { SITE_TITLE } from '../consts';
+import Layout from '../layouts/BlogPost.astro';
+---
+
+<Layout
+	title="Giới thiệu"
+	description={`Đôi dòng về ${SITE_TITLE} và về blog này.`}
+	isPage
+>
+	<p>
+		Xin chào, mình là {SITE_TITLE}. Đây là blog cá nhân, nơi mình ghi lại những điều học được và viết
+		lại cho ngắn, rõ, dễ đọc.
+	</p>
+	<p>
+		Mình viết để nghĩ cho rõ và để lưu lại những gì đã học. Mỗi bài chỉ nói một ý, để bạn đọc xong là
+		dùng được.
+	</p>
+	<p>
+		Bạn có thể đọc <a href="/blog/">tất cả bài viết</a>, xem theo <a href="/chu-de/">chủ đề</a>, hoặc
+		nhận bài mới qua <a href="/rss.xml">RSS</a>.
+	</p>
+</Layout>

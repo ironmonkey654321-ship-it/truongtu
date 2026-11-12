@@ -1,0 +1,42 @@
+---
+import PostList from '../../components/PostList.astro';
+import { SITE_TITLE } from '../../consts';
+import Base from '../../layouts/Base.astro';
+import { type Post, getPosts } from '../../lib/posts';
+
+const posts = await getPosts();
+
+// Gom bai theo nam, nam moi nhat dung truoc.
+const byYear = new Map<number, Post[]>();
+for (const post of posts) {
+	const year = post.data.pubDate.getUTCFullYear();
+	byYear.set(year, [...(byYear.get(year) ?? []), post]);
+}
+const years = [...byYear.entries()].sort((a, b) => b[0] - a[0]);
+---
+
+<Base
+	title={`Bài viết - ${SITE_TITLE}`}
+	description={`Toàn bộ bài viết trên blog ${SITE_TITLE}, xếp theo năm.`}
+>
+	<header class="page-head wrap">
+		<p class="kicker">Bài viết</p>
+		<h1>Tất cả bài viết</h1>
+		<p>{posts.length} bài, mới nhất ở trên cùng.</p>
+	</header>
+
+	<div class="page-body wrap">
+		{posts.length === 0 && <p class="empty">Chưa có bài nào ở đây.</p>}
+		{
+			years.map(([year, list]) => (
+				<section aria-labelledby={`nam-${year}`}>
+					<div class="section-head">
+						<h2 id={`nam-${year}`}>{year}</h2>
+						<span class="count">{list.length} bài</span>
+					</div>
+					<PostList posts={list} />
+				</section>
+			))
+		}
+	</div>
+</Base>

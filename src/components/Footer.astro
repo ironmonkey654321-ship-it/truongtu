@@ -1,0 +1,124 @@
+---
+import { SITE_TITLE } from '../consts';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+	<div class="wrap">
+		<span>&copy; {year} {SITE_TITLE}</span>
+		<nav aria-label="Liên kết cuối trang">
+			<a href="/blog/">Bài viết</a>
+			<a href="/about/">Giới thiệu</a>
+			<a href="/rss.xml">RSS</a>
+		</nav>
+		<span class="theme-status" aria-live="polite"
+			><i aria-hidden="true"></i><span id="theme-status"></span></span
+		>
+	</div>
+</footer>
+
+<!--
+	Doi giao dien sang / toi.
+	- Tu dong: 06:00 den truoc 18:00 theo dong ho may nguoi xem la sang, con lai la toi.
+	- Bam nut: doi ngay, giu toi moc 06:00 hoac 18:00 ke tiep roi tro ve tu dong.
+-->
+<script is:inline>
+	(function () {
+		var KEY = 'tt-theme-override';
+		var DAY_START = 6,
+			DAY_END = 18;
+		var root = document.documentElement;
+		var btn = document.getElementById('theme-toggle');
+		var status = document.getElementById('theme-status');
+		var preview = /[?&]theme=(light|dark)/.exec(location.search); /* xem thu, khong luu */
+		if (!btn || !status) return;
+
+		function autoTheme(d) {
+			var h = d.getHours();
+			return h >= DAY_START && h < DAY_END ? 'light' : 'dark';
+		}
+		/* Moc doi giao dien ke tiep theo gio cua nguoi xem: 06:00 hoac 18:00. */
+		function nextBoundary(d) {
+			var n = new Date(d.getTime()),
+				h = d.getHours();
+			if (h < DAY_START) n.setHours(DAY_START, 0, 0, 0);
+			else if (h < DAY_END) n.setHours(DAY_END, 0, 0, 0);
+			else {
+				n.setDate(n.getDate() + 1);
+				n.setHours(DAY_START, 0, 0, 0);
+			}
+			return n;
+		}
+		function readOverride() {
+			try {
+				var o = JSON.parse(localStorage.getItem(KEY));
+				if (o && o.until > Date.now() && (o.theme === 'light' || o.theme === 'dark')) return o;
+				localStorage.removeItem(KEY);
+			} catch (e) {}
+			return null;
+		}
+		function two(n) {
+			return (n < 10 ? '0' : '') + n;
+		}
+		function hhmm(d) {
+			return two(d.getHours()) + ':' + two(d.getMinutes());
+		}
+		function zone() {
+			try {
+				return Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+			} catch (e) {
+				return '';
+			}
+		}
+
+		function render() {
+			var now = new Date();
+			var o = preview ? null : readOverride();
+			var theme = preview ? preview[1] : o ? o.theme : autoTheme(now);
+			root.setAttribute('data-theme', theme);
+
+			var name = theme === 'dark' ? 'Giao diện tối' : 'Giao diện sáng';
+			var other = theme === 'dark' ? 'sáng' : 'tối';
+			btn.setAttribute('aria-label', 'Chuyển sang giao diện ' + other);
+			btn.title = 'Chuyển sang giao diện ' + other;
+
+			var z = zone();
+			var text;
+			if (preview) text = name + ', đang xem thử.';
+			else if (o)
+				text = name + ', do bạn chọn. Tự động trở lại lúc ' + hhmm(new Date(o.until)) + '.';
+			else text = name + ', tự động theo giờ của bạn: ' + hhmm(now) + (z ? ' (' + z + ')' : '') + '.';
+			if (status.textContent !== text) status.textContent = text;
+		}
+
+		btn.addEventListener('click', function () {
+			var current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+			var next = current === 'dark' ? 'light' : 'dark';
+			var now = new Date();
+			preview = null;
+			try {
+				/* trung voi tu dong thi ve tu dong, khong can luu */
+				if (next === autoTheme(now)) localStorage.removeItem(KEY);
+				else
+					localStorage.setItem(
+						KEY,
+						JSON.stringify({ theme: next, until: nextBoundary(now).getTime() }),
+					);
+			} catch (e) {}
+			render();
+			/* Trinh duyet chan localStorage: van doi duoc trong lan xem nay. */
+			if (root.getAttribute('data-theme') !== next) root.setAttribute('data-theme', next);
+		});
+
+		render();
+		setInterval(render, 30000); /* tu doi khi dong ho qua 06:00 hoac 18:00 */
+		document.addEventListener('visibilitychange', function () {
+			if (!document.hidden) render();
+		});
+		/* Doi giao dien o tab khac thi tab nay doi theo. */
+		window.addEventListener('storage', function (e) {
+			if (e.key === KEY) render();
+		});
+	})();
+</script>
