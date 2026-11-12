@@ -1,0 +1,10 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	// Ten Worker tren Cloudflare. Phai trung voi ten Worker trong dashboard.
+	"name": "truongtu",
+	"compatibility_date": "2026-11-12",
+	// Blog la trang tinh: Cloudflare chi phuc vu thu muc dist do `astro build` tao ra.
+	"assets": {
+		"directory": "./dist"
+	}
+}
